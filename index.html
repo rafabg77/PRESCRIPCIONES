@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Test CNP · Prescripción de Infracciones y Sanciones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1efe7; --card:#ffffff; --line:#e3ddc9;
+  --navy:#101b33; --navy2:#1c2c52;
+  --crimson:#8c1f28; --gold:#b8892b; --gold-l:#e7c874;
+  --ink:#101b33; --muted:#6b7080;
+  --ok-bg:#e7f3e9; --ok-fg:#1f6b3a; --ok-line:#a9d6b6;
+  --bad-bg:#fbe9e7; --bad-fg:#8c1f28; --bad-line:#e8b7b2;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,-apple-system,sans-serif;
+  min-height:100%;display:flex;flex-direction:column;align-items:stretch}
+
+.hdr{background:linear-gradient(155deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;
+  padding:calc(20px + env(safe-area-inset-top,0px)) 18px 18px;text-align:center;position:relative;
+  border-bottom:3px solid var(--gold)}
+.hdr-row{display:flex;align-items:center;justify-content:center;gap:12px;max-width:560px;margin:0 auto}
+.shield{width:38px;height:38px;flex:none}
+.hdr h1{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:1.5rem;letter-spacing:.05em;margin:0;
+  color:#fff;line-height:1.1}
+.hdr p{margin:2px 0 0;font-size:.8rem;color:var(--gold-l);letter-spacing:.02em}
+
+.wrap{width:100%;max-width:560px;margin:0 auto;padding:20px 16px 44px;flex:1;display:flex;flex-direction:column}
+
+.progressRow{display:flex;align-items:center;gap:12px;margin:4px 0 20px;font-size:.85rem;color:var(--muted);font-weight:500}
+.progressRow b{color:var(--navy);font-weight:800}
+.bar{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));width:0%;
+  transition:width .4s cubic-bezier(.4,0,.2,1);border-radius:99px}
+.scorePill{background:var(--navy);color:#fff;padding:4px 12px;border-radius:99px;font-size:.78rem;font-weight:700;
+  white-space:nowrap}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 22px;
+  box-shadow:0 4px 18px rgba(16,27,51,.08)}
+.qnum{display:inline-block;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:.08em;
+  color:#fff;background:var(--crimson);padding:3px 12px;border-radius:6px;margin-bottom:14px}
+.qtxt{font-size:1.15rem;line-height:1.42;font-weight:700;color:var(--navy);margin:0 0 20px}
+
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;border:2px solid var(--line);background:#fff;
+  border-radius:12px;padding:13px 14px;font-size:1rem;color:var(--ink);cursor:pointer;font-family:inherit;
+  font-weight:600;transition:border-color .15s,background .15s,transform .1s}
+.opt .lt{flex:none;width:26px;height:26px;border-radius:50%;background:var(--bg);border:2px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;color:var(--navy);
+  font-family:'Bebas Neue',sans-serif}
+.opt:not([disabled]):hover{border-color:var(--gold);background:#fbf7ec;transform:translateY(-1px)}
+.opt:not([disabled]):active{transform:translateY(0)}
+.opt:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.opt[disabled]{cursor:default}
+.opt.correct{border-color:var(--ok-line);background:var(--ok-bg);color:var(--ok-fg)}
+.opt.correct .lt{background:var(--ok-fg);border-color:var(--ok-fg);color:#fff}
+.opt.wrong{border-color:var(--bad-line);background:var(--bad-bg);color:var(--bad-fg)}
+.opt.wrong .lt{background:var(--bad-fg);border-color:var(--bad-fg);color:#fff}
+
+.fb{margin-top:16px;padding:13px 14px;border-radius:10px;font-size:.92rem;line-height:1.45;
+  max-height:0;opacity:0;overflow:hidden;transition:max-height .3s ease,opacity .3s ease,padding .3s ease}
+.fb.show{max-height:120px;opacity:1;padding:13px 14px}
+.fb.ok{background:var(--ok-bg);color:var(--ok-fg);border:1px solid var(--ok-line)}
+.fb.bad{background:var(--bad-bg);color:var(--bad-fg);border:1px solid var(--bad-line)}
+
+.next{margin-top:18px;width:100%;padding:14px;border:none;border-radius:10px;background:var(--navy);
+  color:#fff;font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.06em;font-size:1.05rem;
+  cursor:pointer;display:none;transition:background .15s}
+.next.show{display:block}
+.next:hover{background:var(--navy2)}
+
+.finalWrap{display:none;text-align:center;padding:20px 6px}
+.finalWrap.show{display:block;animation:pop .35s ease}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.medal{width:72px;height:72px;margin:0 auto 16px}
+.finalScore{font-family:'Bebas Neue',sans-serif;font-size:3.2rem;color:var(--navy);font-weight:400;margin:0;line-height:1}
+.finalScore small{font-size:1.3rem;color:var(--muted);font-weight:400}
+.finalMsg{color:var(--muted);margin:10px 0 22px;font-size:.95rem;font-weight:500}
+.breakdown{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:16px 18px;margin-bottom:22px}
+.breakdown h3{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.04em;font-size:1rem;
+  color:var(--navy);margin:0 0 10px}
+.brow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:.88rem;
+  border-top:1px solid var(--line)}
+.brow:first-of-type{border-top:none}
+.brow span:first-child{color:var(--ink);font-weight:600}
+.brow b{font-weight:800}
+.brow b.full{color:var(--ok-fg)}
+.brow b.part{color:var(--gold)}
+.brow b.zero{color:var(--bad-fg)}
+.restart{padding:13px 30px;border:none;background:var(--navy);color:#fff;border-radius:10px;
+  font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.05em;cursor:pointer;font-size:1rem}
+.restart:hover{background:var(--navy2)}
+
+@media (max-width:380px){.qtxt{font-size:1.05rem}.finalScore{font-size:2.7rem}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-row">
+    <svg class="shield" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M24 3 L43 10 V22 C43 33 35 41 24 45 C13 41 5 33 5 22 V10 Z" fill="#101b33" stroke="#b8892b" stroke-width="2"/>
+      <path d="M24 10 L18 22 H23 L20 33 L31 18 H25 L28 10 Z" fill="#e7c874"/>
+    </svg>
+    <div>
+      <h1>TEST DE PRESCRIPCIÓN</h1>
+      <p>Infracciones y sanciones · 6 leyes</p>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="quizArea">
+    <div class="progressRow">
+      <span>Pregunta <b id="qIndex">1</b>/36</span>
+      <div class="bar"><i id="barFill"></i></div>
+      <span class="scorePill" id="scoreLive">0 aciertos</span>
+    </div>
+    <div class="card">
+      <span class="qnum" id="qLaw">LEY</span>
+      <p class="qtxt" id="qText">Cargando…</p>
+      <div class="opts" id="opts"></div>
+      <div class="fb" id="fb"></div>
+      <button class="next" id="nextBtn" type="button">Siguiente pregunta</button>
+    </div>
+  </div>
+
+  <div class="finalWrap" id="finalWrap">
+    <svg class="medal" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="24" cy="19" r="13" fill="#e7c874" stroke="#101b33" stroke-width="2"/>
+      <path d="M17 30 L12 44 L24 38 L36 44 L31 30" fill="#101b33"/>
+      <path d="M24 12 L26.2 17 L31.5 17.6 L27.7 21.1 L28.8 26.5 L24 23.8 L19.2 26.5 L20.3 21.1 L16.5 17.6 L21.8 17 Z" fill="#101b33"/>
+    </svg>
+    <p class="finalScore" id="finalScore">0<small>/36</small></p>
+    <p class="finalMsg" id="finalMsg"></p>
+    <div class="breakdown" id="breakdown"><h3>Resultado por ley</h3><div id="brows"></div></div>
+    <button class="restart" id="restartBtn" type="button">Repetir test</button>
+  </div>
+</div>
+
+<script>
+const LETTERS = ['A','B','C'];
+const RAW = [
+["LO 4/2015","infracciones leves","6 meses",["1 año","2 años"]],
+["LO 4/2015","infracciones graves","1 año",["6 meses","2 años"]],
+["LO 4/2015","infracciones muy graves","2 años",["6 meses","1 año"]],
+["LO 4/2015","sanciones leves","1 año",["2 años","3 años"]],
+["LO 4/2015","sanciones graves","2 años",["1 año","3 años"]],
+["LO 4/2015","sanciones muy graves","3 años",["1 año","2 años"]],
+["LO 4/2000","infracciones leves","6 meses",["2 años","3 años"]],
+["LO 4/2000","infracciones graves","2 años",["6 meses","3 años"]],
+["LO 4/2000","infracciones muy graves","3 años",["6 meses","2 años"]],
+["LO 4/2000","sanciones leves","1 año",["2 años","5 años"]],
+["LO 4/2000","sanciones graves","2 años",["1 año","5 años"]],
+["LO 4/2000","sanciones muy graves","5 años",["1 año","2 años"]],
+["Ley 5/2014","infracciones leves","6 meses",["1 año","2 años"]],
+["Ley 5/2014","infracciones graves","1 año",["6 meses","2 años"]],
+["Ley 5/2014","infracciones muy graves","2 años",["6 meses","1 año"]],
+["Ley 5/2014","sanciones leves","1 año",["2 años","4 años"]],
+["Ley 5/2014","sanciones graves","2 años",["1 año","4 años"]],
+["Ley 5/2014","sanciones muy graves","4 años",["1 año","2 años"]],
+["LO 4/2010","infracciones leves","1 mes",["2 años","3 años"]],
+["LO 4/2010","infracciones graves","2 años",["1 mes","3 años"]],
+["LO 4/2010","infracciones muy graves","3 años",["1 mes","2 años"]],
+["LO 4/2010","sanciones leves","1 mes",["2 años","3 años"]],
+["LO 4/2010","sanciones graves","2 años",["1 mes","3 años"]],
+["LO 4/2010","sanciones muy graves","3 años",["1 mes","2 años"]],
+["LO 3/2018","infracciones leves","1 año",["2 años","3 años"]],
+["LO 3/2018","infracciones graves","2 años",["1 año","3 años"]],
+["LO 3/2018","infracciones muy graves","3 años",["1 año","2 años"]],
+["LO 3/2018","sanciones leves","1 año",["2 años","3 años"]],
+["LO 3/2018","sanciones graves","2 años",["1 año","3 años"]],
+["LO 3/2018","sanciones muy graves","3 años",["1 año","2 años"]],
+["LO 7/2021","infracciones leves","6 meses",["2 años","3 años"]],
+["LO 7/2021","infracciones graves","2 años",["6 meses","3 años"]],
+["LO 7/2021","infracciones muy graves","3 años",["6 meses","2 años"]],
+["LO 7/2021","sanciones leves","1 año",["2 años","3 años"]],
+["LO 7/2021","sanciones graves","2 años",["1 año","3 años"]],
+["LO 7/2021","sanciones muy graves","3 años",["1 año","2 años"]]
+];
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+let deck=[], idx=0, score=0, lawStats={};
+
+function buildDeck(){
+  lawStats={};
+  deck = RAW.map(([ley,tipo,correcta,distractores])=>{
+    if(!lawStats[ley]) lawStats[ley]={ok:0,total:0};
+    lawStats[ley].total++;
+    return {
+      law: ley,
+      text: `¿Cuándo prescriben las ${tipo} en la ${ley}?`,
+      opts: shuffle([correcta,...distractores].slice()),
+      correct: correcta
+    };
+  });
+  shuffle(deck);
+  idx=0; score=0;
+}
+
+const qIndex=document.getElementById('qIndex'), barFill=document.getElementById('barFill'),
+  scoreLive=document.getElementById('scoreLive'), qLaw=document.getElementById('qLaw'),
+  qText=document.getElementById('qText'), optsEl=document.getElementById('opts'),
+  fb=document.getElementById('fb'), nextBtn=document.getElementById('nextBtn'),
+  quizArea=document.getElementById('quizArea'), finalWrap=document.getElementById('finalWrap'),
+  finalScore=document.getElementById('finalScore'), finalMsg=document.getElementById('finalMsg'),
+  browsEl=document.getElementById('brows');
+
+function renderQ(){
+  const q = deck[idx];
+  qIndex.textContent = idx+1;
+  barFill.style.width = (idx/36*100)+'%';
+  scoreLive.textContent = score+' acierto'+(score===1?'':'s');
+  qLaw.textContent = q.law;
+  qText.textContent = q.text;
+  optsEl.innerHTML='';
+  fb.className='fb'; fb.textContent='';
+  nextBtn.className='next';
+  q.opts.forEach((optText,i)=>{
+    const b=document.createElement('button');
+    b.className='opt'; b.type='button';
+    b.innerHTML = `<span class="lt">${LETTERS[i]}</span><span>${optText}</span>`;
+    b.addEventListener('click',()=>answer(optText,b));
+    optsEl.appendChild(b);
+  });
+}
+
+function answer(chosen,btn){
+  const q = deck[idx];
+  const allBtns = optsEl.querySelectorAll('.opt');
+  allBtns.forEach(b=>{
+    b.disabled = true;
+    const label = b.querySelector('span:last-child').textContent;
+    if(label === q.correct) b.classList.add('correct');
+    else if(b===btn) b.classList.add('wrong');
+  });
+  const isRight = chosen === q.correct;
+  if(isRight){
+    score++;
+    lawStats[q.law].ok++;
+    fb.classList.add('show','ok');
+    fb.textContent = `Correcto. En la ${q.law} este plazo es de ${q.correct}.`;
+  } else {
+    fb.classList.add('show','bad');
+    fb.textContent = `Incorrecto. En la ${q.law} este plazo es de ${q.correct}.`;
+  }
+  scoreLive.textContent = score+' acierto'+(score===1?'':'s');
+  nextBtn.classList.add('show');
+  nextBtn.focus();
+}
+
+nextBtn.addEventListener('click',()=>{
+  idx++;
+  if(idx>=36) return showFinal();
+  renderQ();
+});
+
+function showFinal(){
+  barFill.style.width='100%';
+  quizArea.style.display='none';
+  finalWrap.classList.add('show');
+  finalScore.innerHTML = score+'<small>/36</small>';
+  let msg;
+  if(score>=33) msg='Excelente dominio de los plazos de prescripción.';
+  else if(score>=27) msg='Buen nivel, repasa las leyes donde hayas fallado.';
+  else if(score>=18) msg='Vas por buen camino, conviene repasar el post-it de plazos.';
+  else msg='Repasa la tabla completa antes del examen.';
+  finalMsg.textContent = msg;
+  browsEl.innerHTML = Object.entries(lawStats).map(([law,s])=>{
+    const cls = s.ok===s.total?'full':(s.ok===0?'zero':'part');
+    return `<div class="brow"><span>${law}</span><b class="${cls}">${s.ok}/${s.total}</b></div>`;
+  }).join('');
+}
+
+document.getElementById('restartBtn').addEventListener('click',()=>{
+  finalWrap.classList.remove('show');
+  quizArea.style.display='';
+  buildDeck();
+  renderQ();
+});
+
+buildDeck();
+renderQ();
+</script>
+</body>
+</html>
